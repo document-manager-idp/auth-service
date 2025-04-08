@@ -2,7 +2,7 @@ import { Request, Response, Router } from "express";
 import { generators } from "openid-client";
 import { client } from "../server";
 import { User } from "../types/types";
-import { APP_ADDRESS } from "../config/contants";
+import { REDIRECT_ADDRESS } from "../config/contants";
 import logger from "../config/logger";
 
 const login = Router();
@@ -31,7 +31,7 @@ login.get("/callback", async (req: Request, res: Response) => {
         const params = client.callbackParams(req);
         logger.info("Extracted callback parameters from request.");
 
-        const tokenSet = await client.callback(`${APP_ADDRESS}/auth/callback`, params, {
+        const tokenSet = await client.callback(`${REDIRECT_ADDRESS}/auth/callback`, params, {
             nonce: req.session.nonce,
             state: req.session.state,
         });

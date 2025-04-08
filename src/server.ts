@@ -7,6 +7,7 @@ import { User } from "./types/types";
 import login from "./routes/login";
 import logout from "./routes/logout";
 import management from "./routes/management";
+import logger from "./config/logger";
 
 const app = express();
 app.use(bodyParser.json());
@@ -40,7 +41,7 @@ async function setupCognitoClient() {
 
     // Discover Cognito OIDC endpoints
     const issuer = await Issuer.discover("https://cognito-idp.eu-west-1.amazonaws.com/eu-west-1_3hAObOpXe");
-    console.log("Discovered issuer %s %O", issuer.issuer, issuer.metadata);
+    logger.info("Discovered issuer %s %O", issuer.issuer, issuer.metadata);
 
     // Create openid-client instance
     client = new issuer.Client(cognitoConfig);
