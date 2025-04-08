@@ -1,1 +1,19 @@
-node_modules/
+# Exclude Git version control files
+.git
+.gitignore
+
+# Exclude node modules (if applicable)
+node_modules
+
+# Exclude build output directories
+build
+dist
+
+# Exclude environment variable files
+.env
+
+# Exclude log files
+*.log
+
+# Exclude macOS system files
+.DS_Store

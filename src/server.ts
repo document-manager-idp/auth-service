@@ -46,16 +46,15 @@ async function setupCognitoClient() {
     client = new issuer.Client(cognitoConfig);
 }
 
-app.use("/auth", login);
-app.use("/auth", logout);
-app.use("/auth/management", management);
+app.use("/", login);
+app.use("/", logout);
+app.use("/management", management);
 
 app.get("/", (req: Request, res: Response) => {
-    console.log("req", req);
     res.send(`
     <h1>Welcome</h1>
     <p><a href="/auth/login">Login</a></p>
-    <p><a href="/management/userinfo">Protected Route</a></p>
+    <p><a href="/management/userinfo">Info</a></p>
     <p><a href="/auth/logout">Logout</a></p>
     <p>${JSON.stringify(req.session.tokens) ?? "Not logged in"}</p>
   `);
