@@ -40,7 +40,24 @@ login.get("/callback", async (req: Request, res: Response) => {
         logger.info("User info successfully retrieved from userinfo endpoint.");
         req.session.userInfo = userInfo;
 
-        res.status(200).send({ tokenSet, userInfo });
+        res.status(200).send(`
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <title>Redirecting...</title>
+                <script>
+                    // Save the access token to localStorage
+                    window.localStorage.setItem("access_token", "${tokenSet.access_token}");
+                    // Redirect to the /api endpoint after storing the token
+                    window.location.href = "/api";
+                </script>
+            </head>
+            <body>
+                <p>Loading... Please wait.</p>
+            </body>
+            </html>
+        `);
     } catch (err) {
         logger.error(`Callback error: ${err}`);
         res.redirect("/");

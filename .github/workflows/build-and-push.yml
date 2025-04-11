@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-and-push:
     runs-on: ubuntu-latest
 
     steps:
@@ -32,3 +32,25 @@ jobs:
           context: .
           push: true
           tags: ghcr.io/${{ github.repository }}:latest
+  update-manifest:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: document-manager-idp/k8s-infrastructure
+          token: ${{ secrets.DEPLOYMENT_REPO_TOKEN }}
+
+      - name: Update image tag in auth-service manifest
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          sed -i "s|auth-service:.*|auth-service:$IMAGE_TAG|g" auth-service/deployment.yaml
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "actions@github.com"
+          git add auth-service/deployment.yaml
+          git commit -m "chore(auth-service): Update image tag to $IMAGE_TAG"
+          git push origin main
