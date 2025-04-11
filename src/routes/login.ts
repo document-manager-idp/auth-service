@@ -48,7 +48,7 @@ login.get("/callback", async (req: Request, res: Response) => {
                 <title>Redirecting...</title>
                 <script>
                     // Save the access token to localStorage
-                    window.localStorage.setItem("access_token", "${tokenSet.access_token}");
+                    window.localStorage.setItem("cognitoToken", "${tokenSet.access_token}");
                     // Redirect to the /api endpoint after storing the token
                     window.location.href = "/api";
                 </script>
