@@ -31,7 +31,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/${{ github.repository }}:latest
+          tags: ghcr.io/${{ github.repository }}:${{ github.sha }}
   update-manifest:
     needs: build-and-push
     runs-on: ubuntu-latest
