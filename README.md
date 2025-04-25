@@ -1,6 +1,6 @@
-# Auth Service
+# Auth Service
 
-A lightweight authentication layer that sits in front of your application and delegates sign‑in/out, token refresh and user‑info retrieval to **Amazon Cognito** using the **OpenID Connect** flow.  
+A lightweight authentication layer that sits in front of your application and delegates sign‑in/out, token refresh and user‑info retrieval to **Amazon Cognito** using the **OpenID Connect** flow.  
 It is written in **TypeScript**, runs on **Express**, and ships with a production‑ready Docker image plus a GitHub Actions workflow that automatically builds and publishes that image.
 
 ---
@@ -8,7 +8,7 @@ It is written in **TypeScript**, runs on **Express**, and ships with a productio
 ## Purpose
 
 * Provide a simple, self‑contained service that:
-    * Redirects users to Cognito for login and receives the authorization _code_ callback  
+    * Redirects users to Cognito for login and receives the authorization code callback  
       (`/auth/login`, `/auth/callback`)
     * Handles logout through Cognito’s `/logout` endpoint  
       (`/auth/logout`)
@@ -21,15 +21,8 @@ It is written in **TypeScript**, runs on **Express**, and ships with a productio
 
 ## Tech stack
 
-| Layer | Libraries / Tools                         |
-|-------|-------------------------------------------|
-| Runtime | Node 18 (Alpine)                          |
-| Language | TypeScript 5                              |
-| Web framework | Express 4                                 |
-| Auth / OIDC | openid‑client, amazon‑cognito‑identity‑js |
-| Sessions | express‑session                           |
-| Logging | Winston                                   |
-| Dev experience | nodemon, ts‑node, Prettier                |
+We are using Express, combined with openid‑client which connects the Cognito service
+to our auth service, in order to allow users to sign-up and authenticate.
 
 ---
 
@@ -39,8 +32,8 @@ It is written in **TypeScript**, runs on **Express**, and ships with a productio
 
 * Node 18+
 * npm (ships with Node)
-* A Cognito User Pool and App Client  
-  (Note the **client ID**, **client secret**, and your pool’s issuer URL)
+* A Cognito User Pool and App Client  
+  (Note the **client ID**, **client secret**, and your pool’s issuer URL)
 
 ### 2. Environment variables
 
@@ -92,16 +85,3 @@ A GitHub Actions workflow:
 1. Builds the Docker image on every push to `main`.
 2. Publishes it to GitHub Container Registry (`ghcr.io`).
 3. Updates the image tag in the downstream Kubernetes manifest (see `update-manifest` job).
-
----
-
-## Useful npm scripts
-
-| Script | Purpose |
-|--------|---------|
-| `npm run dev` | Watch‑mode development server (nodemon + ts‑node). |
-| `npm run build` | Compile TypeScript to JavaScript in `dist/`. |
-| `npm start` | Start the compiled server (production). |
-
----
-
