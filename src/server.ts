@@ -51,7 +51,7 @@ app.use("/auth", login);
 app.use("/auth", logout);
 app.use("/management", management);
 
-app.get("/", (req: Request, res: Response) => {
+app.get("/auth", (req: Request, res: Response) => {
     res.send(`
     <h1>Welcome</h1>
     <p><a href="/auth/login">Login</a></p>
