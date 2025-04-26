@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { APP_ADDRESS, REDIRECT_ADDRESS } from "../config/contants";
+import { REDIRECT_ADDRESS } from "../config/contants";
 
 const logout = Router();
 

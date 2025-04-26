@@ -47,8 +47,8 @@ async function setupCognitoClient() {
     client = new issuer.Client(cognitoConfig);
 }
 
-app.use("/", login);
-app.use("/", logout);
+app.use("/auth", login);
+app.use("/auth", logout);
 app.use("/management", management);
 
 app.get("/", (req: Request, res: Response) => {
