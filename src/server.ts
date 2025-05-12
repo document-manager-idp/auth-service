@@ -8,9 +8,24 @@ import login from "./routes/login";
 import logout from "./routes/logout";
 import management from "./routes/management";
 import logger from "./config/logger";
+import promClient from "prom-client";
 
 const app = express();
 app.use(bodyParser.json());
+promClient.collectDefaultMetrics();
+
+const httpRequestsTotal = new promClient.Counter({
+    name: "http_requests_total",
+    help: "Total number of HTTP requests",
+    labelNames: ["method", "route", "status_code"],
+});
+
+app.use((req, res, next) => {
+    res.on("finish", () => {
+        httpRequestsTotal.labels(req.method, req.route?.path || req.path, res.statusCode.toString()).inc();
+    });
+    next();
+});
 
 // Configure a session store (in-memory for demo)
 app.use(
@@ -59,6 +74,11 @@ app.get("/auth", (req: Request, res: Response) => {
     <p><a href="/auth/logout">Logout</a></p>
     <p>${JSON.stringify(req.session.tokens) ?? "Not logged in"}</p>
   `);
+});
+
+app.get("/metrics", async (req, res) => {
+    res.set("Content-Type", promClient.register.contentType);
+    res.end(await promClient.register.metrics());
 });
 
 // START SERVER
