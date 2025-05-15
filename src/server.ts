@@ -20,9 +20,60 @@ const httpRequestsTotal = new promClient.Counter({
     labelNames: ["method", "route", "status_code"],
 });
 
+const httpRequestDuration = new promClient.Histogram({
+    name: "http_request_duration_seconds",
+    help: "Time taken to fulfil an HTTP request",
+    labelNames: ["method", "route", "status_code"],
+    buckets: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2, 5], // tweak for your latency SLOs
+});
+
+const httpRequestSize = new promClient.Histogram({
+    name: "http_request_size_bytes",
+    help: "Size of incoming HTTP request bodies",
+    labelNames: ["method", "route"],
+    buckets: [100, 1_000, 10_000, 100_000, 1_000_000], // 0.1 KiB → 1 MiB
+});
+
+const httpResponseSize = new promClient.Histogram({
+    name: "http_response_size_bytes",
+    help: "Size of outgoing HTTP responses",
+    labelNames: ["method", "route", "status_code"],
+    buckets: [100, 1_000, 10_000, 100_000, 1_000_000],
+});
+
+export const activeSessions = new promClient.Gauge({
+    name: "active_sessions",
+    help: "Current express-session objects in memory",
+});
+
+app.use((req, _, next) => {
+    if (req.session.isNew) activeSessions.inc();
+    next();
+});
+
 app.use((req, res, next) => {
+    const requestBytes = parseInt(req.headers["content-length"] || "0", 10);
+    if (!Number.isNaN(requestBytes)) httpRequestSize.observe({ method: req.method, route: req.path }, requestBytes);
+
+    const original = res.write;
+    let bytesWritten = 0;
+    // monkey-patch res.write/res.end to count outgoing bytes
+    res.write = (...args: any[]) => {
+        bytesWritten += args[0]?.length ?? 0;
+        // @ts-ignore
+        return original.apply(res, args);
+    };
+    res.on("finish", () =>
+        httpResponseSize.observe({ method: req.method, route: req.path, status_code: res.statusCode }, bytesWritten)
+    );
+    next();
+});
+
+app.use((req, res, next) => {
+    const endTimer = httpRequestDuration.startTimer({ method: req.method, route: req.route?.path || req.path });
     res.on("finish", () => {
         httpRequestsTotal.labels(req.method, req.route?.path || req.path, res.statusCode.toString()).inc();
+        endTimer({ status_code: res.statusCode });
     });
     next();
 });
@@ -43,6 +94,7 @@ declare module "express-session" {
         state: string;
         isAuthenticated: boolean;
         tokens: TokenSet;
+        isNew: boolean;
     }
 }
 
@@ -56,7 +108,7 @@ async function setupCognitoClient() {
 
     // Discover Cognito OIDC endpoints
     const issuer = await Issuer.discover("https://cognito-idp.eu-west-1.amazonaws.com/eu-west-1_3hAObOpXe");
-    logger.info("Discovered issuer %s %O", issuer.issuer, issuer.metadata);
+    logger.info(`Discovered issuer ${issuer.issuer} ${JSON.stringify(issuer.metadata)}`);
 
     // Create openid-client instance
     client = new issuer.Client(cognitoConfig);
