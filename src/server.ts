@@ -47,7 +47,7 @@ export const activeSessions = new promClient.Gauge({
 });
 
 app.use((req, _, next) => {
-    if (req.session?.isNew) activeSessions.inc();
+    if (req.path.includes("login")) activeSessions.inc();
     next();
 });
 
