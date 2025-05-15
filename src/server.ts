@@ -47,7 +47,7 @@ export const activeSessions = new promClient.Gauge({
 });
 
 app.use((req, _, next) => {
-    if (req.session.isNew) activeSessions.inc();
+    if (req.session?.isNew) activeSessions.inc();
     next();
 });
 
@@ -119,12 +119,60 @@ app.use("/auth", logout);
 app.use("/management", management);
 
 app.get("/auth", (req: Request, res: Response) => {
-    res.send(`
-    <h1>Welcome</h1>
-    <p><a href="/auth/login">Login</a></p>
-    <p><a href="/auth/management/userinfo">Info</a></p>
-    <p><a href="/auth/logout">Logout</a></p>
-    <p>${JSON.stringify(req.session.tokens) ?? "Not logged in"}</p>
+    const tokensPretty = req.session.tokens
+        ? `<pre>${JSON.stringify(req.session.tokens, null, 2)}</pre>`
+        : '<p class="text-sub">Not logged in.</p>';
+
+    res.send(/* html */ `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Auth Service Demo</title>
+  <style>
+    :root {
+      --bg: #f5f8ff;
+      --card: #ffffff;
+      --brand: #3b82f6;
+      --brand-dark: #2563eb;
+      --sub: #6b7280;
+      --shadow: 0 10px 25px rgba(0,0,0,.07);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    }
+    html,body {height:100%;margin:0}
+    body {display:flex;align-items:center;justify-content:center;background:var(--bg);}
+    .card {
+      background:var(--card);padding:3rem 4rem;border-radius:1rem;box-shadow:var(--shadow);
+      max-width:32rem;width:100%;text-align:center;
+      animation:fade-in .6s ease both;
+    }
+    .card h1 {margin:0 0 1rem;font-size:1.75rem;color:var(--brand-dark);}
+    .text-sub {color:var(--sub);font-size:.9rem;margin-top:2rem}
+    .btn-group {margin:2rem 0;display:flex;gap:1rem;flex-wrap:wrap;justify-content:center}
+    a.btn {
+      display:inline-block;padding:.65rem 1.4rem;border-radius:.5rem;text-decoration:none;
+      background:var(--brand);color:#fff;font-weight:500;transition:background .2s;
+    }
+    a.btn:hover {background:var(--brand-dark)}
+    @keyframes fade-in {from{transform:translateY(15px);opacity:0} to{opacity:1}}
+    pre {text-align:left;background:#f0f4ff;padding:1rem;border-radius:.5rem;overflow:auto}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Auth Service</h1>
+    <p class="text-sub">Amazon Cognito OIDC demo – pick an action:</p>
+
+    <div class="btn-group">
+      <a class="btn" href="/auth/login">Login</a>
+      <a class="btn" href="/management/userinfo">User Info</a>
+      <a class="btn" href="/auth/logout">Logout</a>
+    </div>
+
+    ${tokensPretty}
+  </div>
+</body>
+</html>
   `);
 });
 
