@@ -161,7 +161,7 @@ app.get("/auth", (req: Request, res: Response) => {
 <body>
   <div class="card">
     <h1>Auth Service</h1>
-    <p class="text-sub">Amazon Cognito OIDC demo – pick an action:</p>
+    <p class="text-sub">Powered by Amazon Cognito</p>
 
     <div class="btn-group">
       <a class="btn" href="/auth/login">Login</a>
